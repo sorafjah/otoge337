@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>リズム・クラップ・トレーナー（3-3-7拍子）</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* デフォルトのタッチアクションを無効化し、誤操作を防ぐ */
+        body {
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        /* スライダーのカスタムスタイル */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        /* フラットデザインのボタンホバー効果 */
+        .btn-flat {
+            transition: all 0.2s ease;
+        }
+        .btn-flat:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="bg-[#dcebf4] h-screen w-full flex flex-col m-0 p-0 overflow-hidden font-sans text-gray-800">
+
+    <!-- メインキャンバスエリア -->
+    <div class="flex-grow relative w-full" id="canvas-container">
+        <canvas id="game-canvas" class="absolute top-0 left-0 w-full h-full block"></canvas>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div class="bg-white p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 md:gap-6">
+        
+        <!-- 再生/停止ボタン -->
+        <button id="btn-play" class="btn-flat bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-xl w-full md:w-auto shadow-md">
+            スタート
+        </button>
+
+        <!-- テンポ調整 (BPM) -->
+        <div class="flex-grow flex items-center bg-gray-50 py-2 px-4 rounded-xl border border-gray-100 w-full md:w-auto">
+            <span class="font-bold text-gray-600 mr-4 whitespace-nowrap">速さ (BPM)</span>
+            <input type="range" id="slider-bpm" min="60" max="180" value="100" class="flex-grow">
+            <span id="text-bpm" class="font-bold text-xl text-blue-500 ml-4 w-12 text-right">100</span>
+        </div>
+
+        <!-- サウンド切替と全画面ボタン -->
+        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+            <button id="btn-sound" class="btn-flat bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap">
+                サウンド: ON
+            </button>
+            <button id="btn-fullscreen" class="btn-flat border-2 border-gray-400 hover:border-gray-600 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap flex items-center gap-2">
+                全画面で表示
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * システム設定と状態管理
+         */
+        const rhythmPattern = [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0]; // 3-3-7拍子の配列 (1=鳴る, 0=休符)
+        const beatsOnScreen = 4; // 判定ラインから右端までに表示される拍数
+
+        let audioCtx = null;
+        let isPlaying = false;
+        let bpm = 100;
+        let soundEnabled = true;
+        let startTime = 0;
+        let nextNoteBeat = 0;
+        let scheduleTimerId;
+        let isFinishing = false; // 追加：フィニッシュ演出中かどうかのフラグ
+        let finishStartTime = 0;
+        let finishNotes = [];
+
+        // UI要素
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const btnPlay = document.getElementById('btn-play');
+        const sliderBpm = document.getElementById('slider-bpm');
+        const textBpm = document.getElementById('text-bpm');
+        const btnSound = document.getElementById('btn-sound');
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+
+        let canvasWidth = 0;
+        let canvasHeight = 0;
+
+        /**
+         * キャンバスの初期化とリサイズ処理
+         */
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvasWidth = container.clientWidth;
+            canvasHeight = container.clientHeight;
+            
+            canvas.width = canvasWidth * dpr;
+            canvas.height = canvasHeight * dpr;
+            ctx.scale(dpr, dpr);
+            
+            canvas.style.width = canvasWidth + 'px';
+            canvas.style.height = canvasHeight + 'px';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        /**
+         * Web Audio API 初期化
+         */
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        /**
+         * 手拍子（クラップ）風のサウンドを生成して鳴らす
+         */
+        function playClap(time) {
+            if (!audioCtx || !soundEnabled) return;
+
+            // アタック音（矩形波）
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, time);
+            osc.frequency.exponentialRampToValueAtTime(50, time + 0.05);
+            gain.gain.setValueAtTime(0.4, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.05);
+
+            // ノイズ成分（手拍子らしさ）
+            const bufferSize = audioCtx.sampleRate * 0.05;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 1000;
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(1, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start(time);
+        }
+
+        /**
+         * ノートのスケジューリング処理
+         * 未来の少し先までの音を予約して鳴らす
+         */
+        function scheduler() {
+            if (!isPlaying) return;
+            
+            const currentTime = audioCtx.currentTime;
+            const secondsPerBeat = 60.0 / bpm;
+            const scheduleAheadTime = 0.15; // 0.15秒先までスケジュール
+
+            // 予定時間がスケジューリング範囲内にある間ループ
+            while ((nextNoteBeat * secondsPerBeat) + startTime < currentTime + scheduleAheadTime) {
+                const step = nextNoteBeat % rhythmPattern.length;
+                if (rhythmPattern[step] === 1) {
+                    const noteTime = startTime + (nextNoteBeat * secondsPerBeat);
+                    playClap(noteTime);
+                }
+                nextNoteBeat++;
+            }
+            scheduleTimerId = setTimeout(scheduler, 25);
+        }
+
+        /**
+         * 笑顔を描画するヘルパー関数
+         */
+        function drawSmileFace(ctx, x, y, r, isSmiling) {
+            ctx.fillStyle = '#ffffff';
+            // 左目
+            ctx.beginPath();
+            ctx.arc(x - r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            // 右目
+            ctx.beginPath();
+            ctx.arc(x + r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 口のスタイル
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = r * 0.12;
+            ctx.lineCap = 'round';
+            
+            if (isSmiling) {
+                // にっこり口（目から少し離し、半円より短くする）
+                ctx.beginPath();
+                ctx.arc(x, y + r * 0.2, r * 0.35, Math.PI * 0.15, Math.PI * 0.85, false);
+                ctx.stroke();
+            } else {
+                // 真顔の口
+                ctx.beginPath();
+                ctx.moveTo(x - r * 0.2, y + r * 0.2);
+                ctx.lineTo(x + r * 0.2, y + r * 0.2);
+                ctx.stroke();
+            }
+        }
+
+        /**
+         * アニメーション描画ループ
+         */
+        function draw() {
+            requestAnimationFrame(draw);
+
+            // 背景クリア
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // 座標とサイズの基準値
+            const targetX = canvasWidth * 0.15; // 左から15%の位置
+            const targetY = canvasHeight * 0.55; // 中央より少し下
+            const radius = Math.min(canvasWidth, canvasHeight) * 0.06; // 画面サイズに応じた円の半径
+
+            // --- レーン（水平線）の描画 ---
+            ctx.beginPath();
+            ctx.moveTo(0, targetY);
+            ctx.lineTo(canvasWidth, targetY);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // 現在の拍数を計算
+            let currentBeat = 0;
+            if (isPlaying && audioCtx) {
+                const t = audioCtx.currentTime - startTime;
+                currentBeat = t * (bpm / 60);
+            }
+
+            // --- マーク（ノート）の描画 ---
+            let isTargetFlashing = false;
+            let isBangFlashing = false;
+            
+            // フィニッシュ演出中でなければ通常のマークを描画する
+            if (!isFinishing) {
+                const pixelsPerBeat = (canvasWidth - targetX) / beatsOnScreen;
+                const startBeat = Math.floor(currentBeat) - 2;
+                const endBeat = startBeat + beatsOnScreen + 3;
+
+                ctx.fillStyle = '#ff6b6b'; // フラットな赤色（マーク）
+                
+                for (let b = startBeat; b <= endBeat; b++) {
+                    if (b < 0) continue;
+
+                    const step = b % rhythmPattern.length;
+                    if (rhythmPattern[step] === 1) {
+                        const diffBeat = b - currentBeat;
+                        const x = targetX + diffBeat * pixelsPerBeat;
+
+                        // 画面外は描画しない
+                        if (x > canvasWidth + radius || x < -radius) continue;
+
+                        // ターゲットに重なる瞬間の判定（±0.15拍以内）
+                        if (isPlaying && Math.abs(diffBeat) < 0.15) {
+                            isTargetFlashing = true;
+                        }
+
+                        // マークの描画
+                        ctx.beginPath();
+                        ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 笑顔を描画（ターゲットの3拍前から笑顔に変わる）
+                        const isSmiling = diffBeat <= 3;
+                        drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
+                    }
+                }
+            } else {
+                // フィニッシュ演出中の描画
+                if (audioCtx) {
+                    const elapsed = audioCtx.currentTime - finishStartTime;
+                    const secPerBeat = 60.0 / bpm;
+                    const pixelsPerSecond = ((canvasWidth - targetX) / beatsOnScreen) / secPerBeat;
+
+                    for (let i = 0; i < finishNotes.length; i++) {
+                        const note = finishNotes[i];
+                        const diffSec = note.time - elapsed;
+                        const x = targetX + diffSec * pixelsPerSecond;
+
+                        // 画面外は描画しない
+                        if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
+
+                        if (Math.abs(diffSec) < 0.15) {
+                            if (note.type === 'normal') isTargetFlashing = true;
+                            if (note.type === 'bang') isBangFlashing = true;
+                        }
+
+                        const diffBeat = diffSec / secPerBeat;
+                        const isSmiling = diffBeat <= 3;
+
+                        ctx.beginPath();
+                        if (note.type === 'normal') {
+                            ctx.fillStyle = '#ff6b6b';
+                            ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                            ctx.fill();
+                            drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
+                        } else if (note.type === 'bang') {
+                            ctx.fillStyle = '#ef4444'; // 少し濃い赤（大きい丸）
+                            ctx.arc(x, targetY, radius * 1.6, 0, Math.PI * 2);
+                            ctx.fill();
+                            drawSmileFace(ctx, x, targetY, radius * 1.6, isSmiling);
+                        }
+                    }
+                }
+            }
+
+            // --- 判定ターゲットの描画 ---
+            ctx.beginPath();
+            if (isBangFlashing) {
+                // とがったエフェクト（バンッ！）
+                ctx.save();
+                ctx.translate(targetX, targetY);
+                ctx.beginPath();
+                const spikes = 12;
+                const outerRadius = radius * 2.5;
+                const innerRadius = radius * 1.2;
+                for (let i = 0; i < spikes * 2; i++) {
+                    const angle = (i * Math.PI) / spikes;
+                    const r = (i % 2 === 0) ? outerRadius : innerRadius;
+                    const px = Math.cos(angle) * r;
+                    const py = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(252, 211, 77, 0.8)';
+                ctx.fill();
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.restore();
+            } else if (isTargetFlashing) {
+                // 強調表示（フラッシュ・拡大）
+                ctx.arc(targetX, targetY, radius * 1.3, 0, Math.PI * 2);
+                ctx.strokeStyle = '#fcd34d'; // Tailwind yellow-300
+                ctx.lineWidth = 12;
+                ctx.fillStyle = 'rgba(252, 211, 77, 0.4)';
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                // 通常表示
+                ctx.arc(targetX, targetY, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 6;
+                ctx.fillStyle = 'transparent';
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // 手拍子の絵文字を上に描画（常時表示、重なるときに大きくなる）
+            const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 3.0 : radius * 1.8;
+            ctx.font = `${emojiSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('👏', targetX, targetY - radius * 1.5);
+        }
+
+        // 描画ループの開始
+        requestAnimationFrame(draw);
+
+        /**
+         * エンディング音の生成関数
+         */
+        function playDrumHit(time, duration) {
+            if (!audioCtx || !soundEnabled) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, time);
+            osc.frequency.exponentialRampToValueAtTime(50, time + duration);
+            
+            gain.gain.setValueAtTime(0.6, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + duration);
+
+            // ノイズ成分
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 1000;
+            
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.8, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start(time);
+        }
+
+        function playBang(time) {
+            if (!audioCtx || !soundEnabled) return;
+            const duration = 2.5;
+
+            // 低音ドーン
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(120, time);
+            osc.frequency.exponentialRampToValueAtTime(10, time + duration);
+            
+            gain.gain.setValueAtTime(1.0, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + duration);
+
+            // シンバルクラッシュ風ノイズ
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 3000;
+            
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(1.0, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start(time);
+        }
+
+        function playFinishSequence() {
+            isFinishing = true;
+            isPlaying = false;
+            clearTimeout(scheduleTimerId); // 通常のループを止める
+
+            // ボタン状態の変更
+            btnPlay.textContent = 'エンディング...';
+            btnPlay.disabled = true;
+            btnPlay.classList.add('opacity-50', 'cursor-not-allowed');
+
+            finishStartTime = audioCtx.currentTime + 0.1;
+            finishNotes = [];
+            
+            const secPerBeat = 60.0 / bpm;
+            const quarterBeatSec = secPerBeat / 4.0;
+            
+            // だだだだだだだ (4倍速で 32回 = いつもの8拍分の長さ)
+            for (let i = 0; i < 32; i++) {
+                const timeOffset = i * quarterBeatSec;
+                finishNotes.push({ type: 'normal', time: timeOffset });
+                playDrumHit(finishStartTime + timeOffset, 0.05);
+            }
+
+            // 間 (空ける)
+            // 最後の通常ノートは 31 * quarterBeatSec = 7.75拍目
+            // 9拍目にバンッ
+            const bangTimeOffset = 9 * secPerBeat;
+            finishNotes.push({ type: 'bang', time: bangTimeOffset });
+            playBang(finishStartTime + bangTimeOffset);
+
+            // 終了処理 (余韻を待ってボタンを戻す)
+            setTimeout(() => {
+                isFinishing = false;
+                finishNotes = [];
+                btnPlay.textContent = 'スタート';
+                btnPlay.disabled = false;
+                btnPlay.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
+                btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
+            }, (bangTimeOffset + 2.5) * 1000);
+        }
+
+        /**
+         * イベントリスナー
+         */
+        
+        // 再生・停止
+        btnPlay.addEventListener('click', () => {
+            initAudio();
+            if (isFinishing) return; // 演出中はボタンを無効化
+
+            if (!isPlaying) {
+                // 再生開始
+                isPlaying = true;
+                btnPlay.textContent = 'フィニッシュ';
+                btnPlay.classList.replace('bg-blue-500', 'bg-red-500');
+                btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-red-600');
+                
+                startTime = audioCtx.currentTime + 0.1; // 少し余裕を持ってスタート
+                nextNoteBeat = 0;
+                scheduler();
+            } else {
+                // フィニッシュ演出へ
+                playFinishSequence();
+            }
+        });
+
+        // BPM変更
+        sliderBpm.addEventListener('input', (e) => {
+            const newBpm = parseInt(e.target.value);
+            textBpm.textContent = newBpm;
+            
+            if (isPlaying && audioCtx) {
+                // 再生中にBPMを変えても位置が飛ばないようにstartTimeを調整
+                const currentTime = audioCtx.currentTime;
+                const currentBeat = (currentTime - startTime) * (bpm / 60);
+                bpm = newBpm;
+                startTime = currentTime - (currentBeat / (bpm / 60));
+            } else {
+                bpm = newBpm;
+            }
+        });
+
+        // サウンドON/OFF
+        btnSound.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                btnSound.textContent = 'サウンド: ON';
+                btnSound.classList.replace('bg-gray-300', 'bg-gray-200');
+            } else {
+                btnSound.textContent = 'サウンド: OFF';
+                btnSound.classList.replace('bg-gray-200', 'bg-gray-300');
+            }
+        });
+
+        // 全画面表示切替
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch((err) => {
+                    console.warn(`全画面表示エラー: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+    </script>
+</body>
+</html>
