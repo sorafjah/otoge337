@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>リズム・クラップ・トレーナー（3-3-7拍子）</title>
+    <title>リズムゲーム337♪</title>
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -92,7 +92,7 @@
         let startTime = 0;
         let nextNoteBeat = 0;
         let scheduleTimerId;
-        let isFinishing = false; // 追加：フィニッシュ演出中かどうかのフラグ
+        let isFinishing = false; // フィニッシュ演出中かどうかのフラグ
         let finishStartTime = 0;
         let finishNotes = [];
 
@@ -248,7 +248,7 @@
 
             // 座標とサイズの基準値
             const targetX = canvasWidth * 0.15; // 左から15%の位置
-            const targetY = canvasHeight * 0.55; // 中央より少し下
+            const targetY = canvasHeight * 0.65; // 中央より少し下に配置（絵文字のスペース確保）
             const radius = Math.min(canvasWidth, canvasHeight) * 0.06; // 画面サイズに応じた円の半径
 
             // --- レーン（水平線）の描画 ---
@@ -294,13 +294,17 @@
                             isTargetFlashing = true;
                         }
 
-                        // マークの描画
+                        // マークの描画（白枠付き）
                         ctx.beginPath();
                         ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ff6b6b';
                         ctx.fill();
+                        ctx.lineWidth = radius * 0.2;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
                         
-                        // 笑顔を描画（ターゲットの3拍前から笑顔に変わる）
-                        const isSmiling = diffBeat <= 3;
+                        // 笑顔を描画（常に笑顔）
+                        const isSmiling = true; 
                         drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
                     }
                 }
@@ -319,24 +323,33 @@
                         // 画面外は描画しない
                         if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
 
-                        if (Math.abs(diffSec) < 0.15) {
-                            if (note.type === 'normal') isTargetFlashing = true;
-                            if (note.type === 'bang') isBangFlashing = true;
+                        // 連打中は間隔が狭いので、反応する時間(diffBeat)を通常より短くして細かく動かす
+                        const currentDiffBeat = diffSec / secPerBeat;
+                        if (note.type === 'normal' && Math.abs(currentDiffBeat) < 0.08) {
+                            isTargetFlashing = true;
+                        } else if (note.type === 'bang' && Math.abs(currentDiffBeat) < 0.15) {
+                            isBangFlashing = true;
                         }
 
-                        const diffBeat = diffSec / secPerBeat;
-                        const isSmiling = diffBeat <= 3;
+                        // 常に笑顔
+                        const isSmiling = true;
 
                         ctx.beginPath();
                         if (note.type === 'normal') {
-                            ctx.fillStyle = '#ff6b6b';
                             ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ff6b6b';
                             ctx.fill();
+                            ctx.lineWidth = radius * 0.2;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.stroke();
                             drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
                         } else if (note.type === 'bang') {
-                            ctx.fillStyle = '#ef4444'; // 少し濃い赤（大きい丸）
                             ctx.arc(x, targetY, radius * 1.6, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ef4444'; // 少し濃い赤（大きい丸）
                             ctx.fill();
+                            ctx.lineWidth = radius * 0.3;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.stroke();
                             drawSmileFace(ctx, x, targetY, radius * 1.6, isSmiling);
                         }
                     }
@@ -386,12 +399,14 @@
                 ctx.stroke();
             }
 
-            // 手拍子の絵文字を上に描画（常時表示、重なるときに大きくなる）
-            const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 3.0 : radius * 1.8;
+            // 手拍子の絵文字を上に描画（マークと画面上限の中間位置で、常時表示、重なるときに大きくなる）
+            ctx.fillStyle = '#000000'; // 直前の透明設定をリセット
+            const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 4.0 : radius * 2.5;
+            const emojiY = targetY / 2; // targetYと0（画面上限）の中間
             ctx.font = `${emojiSize}px sans-serif`;
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText('👏', targetX, targetY - radius * 1.5);
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👏', targetX, emojiY);
         }
 
         // 描画ループの開始
