@@ -67,7 +67,7 @@
             <span id="text-bpm" class="font-bold text-xl text-blue-500 ml-4 w-12 text-right">100</span>
         </div>
 
-        <!-- サウンド切替と全画面ボタン -->
+        <!-- サウンド切替と全画面・設定ボタン -->
         <div class="flex items-center gap-3 w-full md:w-auto justify-end">
             <button id="btn-sound" class="btn-flat bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap">
                 サウンド: ON
@@ -75,6 +75,50 @@
             <button id="btn-fullscreen" class="btn-flat border-2 border-gray-400 hover:border-gray-600 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap flex items-center gap-2">
                 全画面で表示
             </button>
+            <!-- 歯車（設定）ボタン -->
+            <button id="btn-settings" class="btn-flat text-gray-500 hover:text-gray-800 p-2 focus:outline-none" title="設定">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 設定モーダル（初期状態は非表示） -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-center items-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">リズムパターン設定</h2>
+            
+            <!-- 通常リズム設定 -->
+            <div class="mb-8">
+                <div class="flex justify-between items-end mb-3">
+                    <h3 class="font-bold text-lg text-blue-600">通常リズム (16拍分)</h3>
+                    <button id="btn-random-normal" class="text-sm font-bold bg-blue-100 text-blue-700 px-4 py-1.5 rounded-lg hover:bg-blue-200 transition-colors shadow-sm">ランダム🎲</button>
+                </div>
+                <div id="normal-pattern-container" class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4">
+                    <!-- JSでボタンを生成 -->
+                </div>
+            </div>
+
+            <!-- フィニッシュリズム設定 -->
+            <div class="mb-8">
+                <div class="flex justify-between items-end mb-1">
+                    <h3 class="font-bold text-lg text-red-600">フィニッシュ連打 (8拍分パターンを2回繰り返し)</h3>
+                    <button id="btn-random-finish" class="text-sm font-bold bg-red-100 text-red-700 px-4 py-1.5 rounded-lg hover:bg-red-200 transition-colors shadow-sm">ランダム🎲</button>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">※設定した16ステップのパターンが2回繰り返され（合計16拍分）、そのあとに間を空けてドーン！となります。</p>
+                <div id="finish-pattern-container" class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4">
+                    <!-- JSでボタンを生成 -->
+                </div>
+            </div>
+
+            <!-- 完了ボタン -->
+            <div class="text-center mt-8">
+                <button id="btn-close-settings" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-12 rounded-full text-lg shadow-md transition-transform active:scale-95">
+                    設定を完了する
+                </button>
+            </div>
         </div>
     </div>
 
@@ -82,7 +126,11 @@
         /**
          * システム設定と状態管理
          */
-        const rhythmPattern = [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0]; // 3-3-7拍子の配列 (1=鳴る, 0=休符)
+        // 通常リズム: 3-3-7拍子の配列 (1=鳴る, 0=休符)
+        let rhythmPattern = [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0]; 
+        // フィニッシュリズム: 半分の間隔で16回分（デフォルトは全開で連打）
+        let finishPattern = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
         const beatsOnScreen = 4; // 判定ラインから右端までに表示される拍数
 
         let audioCtx = null;
@@ -104,6 +152,15 @@
         const textBpm = document.getElementById('text-bpm');
         const btnSound = document.getElementById('btn-sound');
         const btnFullscreen = document.getElementById('btn-fullscreen');
+        
+        // 設定用DOM要素
+        const btnSettings = document.getElementById('btn-settings');
+        const settingsModal = document.getElementById('settings-modal');
+        const btnCloseSettings = document.getElementById('btn-close-settings');
+        const normalContainer = document.getElementById('normal-pattern-container');
+        const finishContainer = document.getElementById('finish-pattern-container');
+        const btnRandomNormal = document.getElementById('btn-random-normal');
+        const btnRandomFinish = document.getElementById('btn-random-finish');
 
         let canvasWidth = 0;
         let canvasHeight = 0;
@@ -323,9 +380,9 @@
                         // 画面外は描画しない
                         if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
 
-                        // 連打中は間隔が狭いので、反応する時間(diffBeat)を通常より短くして細かく動かす
+                        // 連打中は間隔が狭いので、反応する時間を少し調整
                         const currentDiffBeat = diffSec / secPerBeat;
-                        if (note.type === 'normal' && Math.abs(currentDiffBeat) < 0.08) {
+                        if (note.type === 'normal' && Math.abs(currentDiffBeat) < 0.1) {
                             isTargetFlashing = true;
                         } else if (note.type === 'bang' && Math.abs(currentDiffBeat) < 0.15) {
                             isBangFlashing = true;
@@ -399,7 +456,7 @@
                 ctx.stroke();
             }
 
-            // 手拍子の絵文字を上に描画（マークと画面上限の中間位置で、常時表示、重なるときに大きくなる）
+            // 手拍子の絵文字を上に描画
             ctx.fillStyle = '#000000'; // 直前の透明設定をリセット
             const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 4.0 : radius * 2.5;
             const emojiY = targetY / 2; // targetYと0（画面上限）の中間
@@ -497,6 +554,9 @@
             noise.start(time);
         }
 
+        /**
+         * フィニッシュ演出のスケジュール
+         */
         function playFinishSequence() {
             isFinishing = true;
             isPlaying = false;
@@ -511,19 +571,25 @@
             finishNotes = [];
             
             const secPerBeat = 60.0 / bpm;
-            const quarterBeatSec = secPerBeat / 4.0;
+            // ご要望通り「半分のタイミング（2分の1拍子）」にする
+            const halfBeatSec = secPerBeat / 2.0; 
             
-            // だだだだだだだ (4倍速で 32回 = いつもの8拍分の長さ)
-            for (let i = 0; i < 32; i++) {
-                const timeOffset = i * quarterBeatSec;
-                finishNotes.push({ type: 'normal', time: timeOffset });
-                playDrumHit(finishStartTime + timeOffset, 0.05);
+            // 設定画面で作成した16回分のパターンを半分の間隔でスケジュール
+            // それを2回繰り返して、全体で16拍分の長さにする
+            for (let repeat = 0; repeat < 2; repeat++) {
+                for (let i = 0; i < 16; i++) {
+                    if (finishPattern[i] === 1) {
+                        const stepIndex = repeat * 16 + i;
+                        const timeOffset = stepIndex * halfBeatSec;
+                        finishNotes.push({ type: 'normal', time: timeOffset });
+                        playDrumHit(finishStartTime + timeOffset, 0.05);
+                    }
+                }
             }
 
-            // 間 (空ける)
-            // 最後の通常ノートは 31 * quarterBeatSec = 7.75拍目
-            // 9拍目にバンッ
-            const bangTimeOffset = 9 * secPerBeat;
+            // 間をおいてドーン
+            // 32ステップ(16拍分)終わった後、1拍間を空けて17拍目にドーン。
+            const bangTimeOffset = 17 * secPerBeat;
             finishNotes.push({ type: 'bang', time: bangTimeOffset });
             playBang(finishStartTime + bangTimeOffset);
 
@@ -540,7 +606,113 @@
         }
 
         /**
-         * イベントリスナー
+         * 設定画面のUIレンダリングとイベント
+         */
+        function renderPatternEditors() {
+            normalContainer.innerHTML = '';
+            finishContainer.innerHTML = '';
+
+            // 16個のボタンを4個（1小節分など）ずつのグループに分けて表示
+            for (let group = 0; group < 4; group++) {
+                const groupDivN = document.createElement('div');
+                groupDivN.className = 'grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-[70px]';
+                
+                const groupDivF = document.createElement('div');
+                groupDivF.className = 'grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-[70px]';
+
+                for (let i = 0; i < 4; i++) {
+                    const index = group * 4 + i;
+                    
+                    // 通常リズム用ボタン
+                    const btnN = document.createElement('button');
+                    const valN = rhythmPattern[index];
+                    btnN.className = `w-full aspect-square rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 ${valN ? 'bg-blue-500' : 'bg-gray-200 hover:bg-gray-300'}`;
+                    btnN.onclick = () => { 
+                        rhythmPattern[index] = valN ? 0 : 1; 
+                        renderPatternEditors(); // 再描画
+                    };
+                    groupDivN.appendChild(btnN);
+
+                    // フィニッシュリズム用ボタン
+                    const btnF = document.createElement('button');
+                    const valF = finishPattern[index];
+                    btnF.className = `w-full aspect-square rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-red-300 ${valF ? 'bg-red-500' : 'bg-gray-200 hover:bg-gray-300'}`;
+                    btnF.onclick = () => { 
+                        finishPattern[index] = valF ? 0 : 1; 
+                        renderPatternEditors(); // 再描画
+                    };
+                    groupDivF.appendChild(btnF);
+                }
+                normalContainer.appendChild(groupDivN);
+                finishContainer.appendChild(groupDivF);
+            }
+        }
+
+        // 規則性のあるランダムパターンを生成する関数
+        function generateRandomPattern() {
+            // Aパターンの候補（長さ4、連続空白なし、先頭と末尾が両方空白にならない）
+            const validPatternsA = [
+                [1, 1, 1, 1],
+                [1, 1, 1, 0],
+                [1, 1, 0, 1],
+                [1, 0, 1, 1],
+                [1, 0, 1, 0],
+                [0, 1, 1, 1],
+                [0, 1, 0, 1]
+            ];
+            
+            // Aをランダムに選択
+            const patternA = validPatternsA[Math.floor(Math.random() * validPatternsA.length)];
+            
+            // Bパターンの候補（長さ4、連続空白なし）
+            const validPatternsB = [
+                [1, 1, 1, 1],
+                [1, 1, 1, 0],
+                [1, 1, 0, 1],
+                [1, 0, 1, 1],
+                [1, 0, 1, 0],
+                [0, 1, 1, 1],
+                [0, 1, 1, 0],
+                [0, 1, 0, 1]
+            ];
+            
+            // Bの条件: Aと違うパターン ＆ Aの末尾とBの先頭で空白が連続しない
+            const aLast = patternA[3];
+            const bCandidates = validPatternsB.filter(b => {
+                const isDifferentFromA = b.join('') !== patternA.join('');
+                const noDoubleZero = !(aLast === 0 && b[0] === 0);
+                return isDifferentFromA && noDoubleZero;
+            });
+            
+            // Bをランダムに選択
+            const patternB = bCandidates[Math.floor(Math.random() * bCandidates.length)];
+            
+            // Aを3回、Bを1回繋げる (4ステップ × 4ブロック = 16ステップ)
+            return [...patternA, ...patternA, ...patternA, ...patternB];
+        }
+
+        // ランダムボタンの処理
+        btnRandomNormal.onclick = () => {
+            rhythmPattern = generateRandomPattern();
+            renderPatternEditors();
+        };
+
+        btnRandomFinish.onclick = () => {
+            finishPattern = generateRandomPattern();
+            renderPatternEditors();
+        };
+
+        // モーダルの開閉
+        btnSettings.onclick = () => {
+            renderPatternEditors(); // 開くときに最新状態を描画
+            settingsModal.classList.remove('hidden');
+        };
+        btnCloseSettings.onclick = () => {
+            settingsModal.classList.add('hidden');
+        };
+
+        /**
+         * メインのイベントリスナー
          */
         
         // 再生・停止
