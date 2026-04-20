@@ -43,6 +43,14 @@
         .btn-flat:active {
             transform: scale(0.95);
         }
+        /* 設定モーダル用アニメーション */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
     </style>
 </head>
 <body class="bg-[#dcebf4] h-screen w-full flex flex-col m-0 p-0 overflow-hidden font-sans text-gray-800">
@@ -63,60 +71,78 @@
         <!-- テンポ調整 (BPM) -->
         <div class="flex-grow flex items-center bg-gray-50 py-2 px-4 rounded-xl border border-gray-100 w-full md:w-auto">
             <span class="font-bold text-gray-600 mr-4 whitespace-nowrap">速さ (BPM)</span>
-            <input type="range" id="slider-bpm" min="60" max="180" value="100" class="flex-grow">
-            <span id="text-bpm" class="font-bold text-xl text-blue-500 ml-4 w-12 text-right">100</span>
+            <input type="range" id="slider-bpm" min="60" max="240" value="120" class="flex-grow">
+            <span id="text-bpm" class="font-bold text-xl text-blue-500 ml-4 w-12 text-right">120</span>
         </div>
 
         <!-- サウンド切替と全画面・設定ボタン -->
         <div class="flex items-center gap-3 w-full md:w-auto justify-end">
-            <button id="btn-sound" class="btn-flat bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap">
+            <button id="btn-sound" class="btn-flat bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl whitespace-nowrap">
                 サウンド: ON
             </button>
-            <button id="btn-fullscreen" class="btn-flat border-2 border-gray-400 hover:border-gray-600 text-gray-700 font-bold py-3 px-6 rounded-xl whitespace-nowrap flex items-center gap-2">
+            <button id="btn-fullscreen" class="btn-flat border-2 border-gray-400 hover:border-gray-600 text-gray-700 font-bold py-3 px-4 rounded-xl whitespace-nowrap">
                 全画面で表示
             </button>
             <!-- 歯車（設定）ボタン -->
-            <button id="btn-settings" class="btn-flat text-gray-500 hover:text-gray-800 p-2 focus:outline-none" title="設定">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <button id="btn-settings" class="btn-flat border-2 border-gray-400 hover:border-gray-600 text-gray-700 p-3 rounded-xl flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
             </button>
         </div>
     </div>
 
-    <!-- 設定モーダル（初期状態は非表示） -->
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-center items-center backdrop-blur-sm">
-        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">リズムパターン設定</h2>
+    <!-- 設定モーダル -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 animate-fade-in px-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            <!-- ヘッダー -->
+            <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    リズム設定
+                </h2>
+                <button id="btn-close-modal" class="text-gray-500 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
             
-            <!-- 通常リズム設定 -->
-            <div class="mb-8">
-                <div class="flex justify-between items-end mb-3">
-                    <h3 class="font-bold text-lg text-blue-600">通常リズム (16拍分)</h3>
-                    <button id="btn-random-normal" class="text-sm font-bold bg-blue-100 text-blue-700 px-4 py-1.5 rounded-lg hover:bg-blue-200 transition-colors shadow-sm">ランダム🎲</button>
+            <!-- スクロール可能なコンテンツエリア -->
+            <div class="p-5 overflow-y-auto flex-grow">
+                
+                <!-- メインリズム設定 -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">メインリズム (16拍)</h3>
+                            <p class="text-xs text-gray-500">タップしてON/OFFを切り替え</p>
+                        </div>
+                        <button id="btn-random" class="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-3 rounded-lg flex items-center gap-1 transition">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-8.27l-5.67-5.67"></path></svg>
+                            ランダム (AAAB)
+                        </button>
+                    </div>
+                    <div id="grid-main" class="grid grid-cols-8 gap-1.5 md:gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                        <!-- JSでボタンを生成 -->
+                    </div>
                 </div>
-                <div id="normal-pattern-container" class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4">
-                    <!-- JSでボタンを生成 -->
-                </div>
-            </div>
 
-            <!-- フィニッシュリズム設定 -->
-            <div class="mb-8">
-                <div class="flex justify-between items-end mb-1">
-                    <h3 class="font-bold text-lg text-red-600">フィニッシュ連打 (8拍分パターンを2回繰り返し)</h3>
-                    <button id="btn-random-finish" class="text-sm font-bold bg-red-100 text-red-700 px-4 py-1.5 rounded-lg hover:bg-red-200 transition-colors shadow-sm">ランダム🎲</button>
+                <!-- フィニッシュリズム設定 -->
+                <div>
+                    <div class="mb-3">
+                        <h3 class="text-lg font-bold text-gray-800">フィニッシュリズム (32マス・連打)</h3>
+                        <p class="text-xs text-gray-500">タップで変更: 無音(灰) → 👏通常(赤) → 💥バンッ(黄)</p>
+                    </div>
+                    <div id="grid-finish" class="grid grid-cols-8 gap-1.5 md:gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                        <!-- JSでボタンを生成 -->
+                    </div>
                 </div>
-                <p class="text-xs text-gray-500 mb-3">※設定した16ステップのパターンが2回繰り返され（合計16拍分）、そのあとに間を空けてドーン！となります。</p>
-                <div id="finish-pattern-container" class="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-4">
-                    <!-- JSでボタンを生成 -->
-                </div>
-            </div>
 
-            <!-- 完了ボタン -->
-            <div class="text-center mt-8">
-                <button id="btn-close-settings" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-12 rounded-full text-lg shadow-md transition-transform active:scale-95">
-                    設定を完了する
+            </div>
+            <!-- フッター -->
+            <div class="p-4 border-t border-gray-200 flex justify-end bg-gray-50 rounded-b-2xl">
+                <button id="btn-close-modal-bottom" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl shadow transition">
+                    完了
                 </button>
             </div>
         </div>
@@ -126,20 +152,27 @@
         /**
          * システム設定と状態管理
          */
-        // 通常リズム: 3-3-7拍子の配列 (1=鳴る, 0=休符)
+        // 1=鳴る, 0=休符 (メインループ)
         let rhythmPattern = [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0]; 
-        // フィニッシュリズム: 半分の間隔で16回分（デフォルトは全開で連打）
-        let finishPattern = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        
+        // フィニッシュパターンの初期値 (0=無音, 1=Clap, 2=Bang)
+        let finishPattern = [
+            1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 0, 0, 0, 0, 2
+        ];
 
         const beatsOnScreen = 4; // 判定ラインから右端までに表示される拍数
 
         let audioCtx = null;
         let isPlaying = false;
-        let bpm = 100;
+        let bpm = 120;
         let soundEnabled = true;
         let startTime = 0;
         let nextNoteBeat = 0;
         let scheduleTimerId;
+        
         let isFinishing = false; // フィニッシュ演出中かどうかのフラグ
         let finishStartTime = 0;
         let finishNotes = [];
@@ -153,14 +186,14 @@
         const btnSound = document.getElementById('btn-sound');
         const btnFullscreen = document.getElementById('btn-fullscreen');
         
-        // 設定用DOM要素
+        // モーダル要素
         const btnSettings = document.getElementById('btn-settings');
-        const settingsModal = document.getElementById('settings-modal');
-        const btnCloseSettings = document.getElementById('btn-close-settings');
-        const normalContainer = document.getElementById('normal-pattern-container');
-        const finishContainer = document.getElementById('finish-pattern-container');
-        const btnRandomNormal = document.getElementById('btn-random-normal');
-        const btnRandomFinish = document.getElementById('btn-random-finish');
+        const modalSettings = document.getElementById('modal-settings');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnCloseModalBottom = document.getElementById('btn-close-modal-bottom');
+        const gridMain = document.getElementById('grid-main');
+        const gridFinish = document.getElementById('grid-finish');
+        const btnRandom = document.getElementById('btn-random');
 
         let canvasWidth = 0;
         let canvasHeight = 0;
@@ -239,238 +272,7 @@
         }
 
         /**
-         * ノートのスケジューリング処理
-         * 未来の少し先までの音を予約して鳴らす
-         */
-        function scheduler() {
-            if (!isPlaying) return;
-            
-            const currentTime = audioCtx.currentTime;
-            const secondsPerBeat = 60.0 / bpm;
-            const scheduleAheadTime = 0.15; // 0.15秒先までスケジュール
-
-            // 予定時間がスケジューリング範囲内にある間ループ
-            while ((nextNoteBeat * secondsPerBeat) + startTime < currentTime + scheduleAheadTime) {
-                const step = nextNoteBeat % rhythmPattern.length;
-                if (rhythmPattern[step] === 1) {
-                    const noteTime = startTime + (nextNoteBeat * secondsPerBeat);
-                    playClap(noteTime);
-                }
-                nextNoteBeat++;
-            }
-            scheduleTimerId = setTimeout(scheduler, 25);
-        }
-
-        /**
-         * 笑顔を描画するヘルパー関数
-         */
-        function drawSmileFace(ctx, x, y, r, isSmiling) {
-            ctx.fillStyle = '#ffffff';
-            // 左目
-            ctx.beginPath();
-            ctx.arc(x - r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-            // 右目
-            ctx.beginPath();
-            ctx.arc(x + r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 口のスタイル
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = r * 0.12;
-            ctx.lineCap = 'round';
-            
-            if (isSmiling) {
-                // にっこり口（目から少し離し、半円より短くする）
-                ctx.beginPath();
-                ctx.arc(x, y + r * 0.2, r * 0.35, Math.PI * 0.15, Math.PI * 0.85, false);
-                ctx.stroke();
-            } else {
-                // 真顔の口
-                ctx.beginPath();
-                ctx.moveTo(x - r * 0.2, y + r * 0.2);
-                ctx.lineTo(x + r * 0.2, y + r * 0.2);
-                ctx.stroke();
-            }
-        }
-
-        /**
-         * アニメーション描画ループ
-         */
-        function draw() {
-            requestAnimationFrame(draw);
-
-            // 背景クリア
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-            // 座標とサイズの基準値
-            const targetX = canvasWidth * 0.15; // 左から15%の位置
-            const targetY = canvasHeight * 0.65; // 中央より少し下に配置（絵文字のスペース確保）
-            const radius = Math.min(canvasWidth, canvasHeight) * 0.06; // 画面サイズに応じた円の半径
-
-            // --- レーン（水平線）の描画 ---
-            ctx.beginPath();
-            ctx.moveTo(0, targetY);
-            ctx.lineTo(canvasWidth, targetY);
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 6;
-            ctx.stroke();
-
-            // 現在の拍数を計算
-            let currentBeat = 0;
-            if (isPlaying && audioCtx) {
-                const t = audioCtx.currentTime - startTime;
-                currentBeat = t * (bpm / 60);
-            }
-
-            // --- マーク（ノート）の描画 ---
-            let isTargetFlashing = false;
-            let isBangFlashing = false;
-            
-            // フィニッシュ演出中でなければ通常のマークを描画する
-            if (!isFinishing) {
-                const pixelsPerBeat = (canvasWidth - targetX) / beatsOnScreen;
-                const startBeat = Math.floor(currentBeat) - 2;
-                const endBeat = startBeat + beatsOnScreen + 3;
-
-                ctx.fillStyle = '#ff6b6b'; // フラットな赤色（マーク）
-                
-                for (let b = startBeat; b <= endBeat; b++) {
-                    if (b < 0) continue;
-
-                    const step = b % rhythmPattern.length;
-                    if (rhythmPattern[step] === 1) {
-                        const diffBeat = b - currentBeat;
-                        const x = targetX + diffBeat * pixelsPerBeat;
-
-                        // 画面外は描画しない
-                        if (x > canvasWidth + radius || x < -radius) continue;
-
-                        // ターゲットに重なる瞬間の判定（±0.15拍以内）
-                        if (isPlaying && Math.abs(diffBeat) < 0.15) {
-                            isTargetFlashing = true;
-                        }
-
-                        // マークの描画（白枠付き）
-                        ctx.beginPath();
-                        ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ff6b6b';
-                        ctx.fill();
-                        ctx.lineWidth = radius * 0.2;
-                        ctx.strokeStyle = '#ffffff';
-                        ctx.stroke();
-                        
-                        // 笑顔を描画（常に笑顔）
-                        const isSmiling = true; 
-                        drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
-                    }
-                }
-            } else {
-                // フィニッシュ演出中の描画
-                if (audioCtx) {
-                    const elapsed = audioCtx.currentTime - finishStartTime;
-                    const secPerBeat = 60.0 / bpm;
-                    const pixelsPerSecond = ((canvasWidth - targetX) / beatsOnScreen) / secPerBeat;
-
-                    for (let i = 0; i < finishNotes.length; i++) {
-                        const note = finishNotes[i];
-                        const diffSec = note.time - elapsed;
-                        const x = targetX + diffSec * pixelsPerSecond;
-
-                        // 画面外は描画しない
-                        if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
-
-                        // 連打中は間隔が狭いので、反応する時間を少し調整
-                        const currentDiffBeat = diffSec / secPerBeat;
-                        if (note.type === 'normal' && Math.abs(currentDiffBeat) < 0.1) {
-                            isTargetFlashing = true;
-                        } else if (note.type === 'bang' && Math.abs(currentDiffBeat) < 0.15) {
-                            isBangFlashing = true;
-                        }
-
-                        // 常に笑顔
-                        const isSmiling = true;
-
-                        ctx.beginPath();
-                        if (note.type === 'normal') {
-                            ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
-                            ctx.fillStyle = '#ff6b6b';
-                            ctx.fill();
-                            ctx.lineWidth = radius * 0.2;
-                            ctx.strokeStyle = '#ffffff';
-                            ctx.stroke();
-                            drawSmileFace(ctx, x, targetY, radius * 0.85, isSmiling);
-                        } else if (note.type === 'bang') {
-                            ctx.arc(x, targetY, radius * 1.6, 0, Math.PI * 2);
-                            ctx.fillStyle = '#ef4444'; // 少し濃い赤（大きい丸）
-                            ctx.fill();
-                            ctx.lineWidth = radius * 0.3;
-                            ctx.strokeStyle = '#ffffff';
-                            ctx.stroke();
-                            drawSmileFace(ctx, x, targetY, radius * 1.6, isSmiling);
-                        }
-                    }
-                }
-            }
-
-            // --- 判定ターゲットの描画 ---
-            ctx.beginPath();
-            if (isBangFlashing) {
-                // とがったエフェクト（バンッ！）
-                ctx.save();
-                ctx.translate(targetX, targetY);
-                ctx.beginPath();
-                const spikes = 12;
-                const outerRadius = radius * 2.5;
-                const innerRadius = radius * 1.2;
-                for (let i = 0; i < spikes * 2; i++) {
-                    const angle = (i * Math.PI) / spikes;
-                    const r = (i % 2 === 0) ? outerRadius : innerRadius;
-                    const px = Math.cos(angle) * r;
-                    const py = Math.sin(angle) * r;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.closePath();
-                ctx.fillStyle = 'rgba(252, 211, 77, 0.8)';
-                ctx.fill();
-                ctx.strokeStyle = '#f59e0b';
-                ctx.lineWidth = 4;
-                ctx.stroke();
-                ctx.restore();
-            } else if (isTargetFlashing) {
-                // 強調表示（フラッシュ・拡大）
-                ctx.arc(targetX, targetY, radius * 1.3, 0, Math.PI * 2);
-                ctx.strokeStyle = '#fcd34d'; // Tailwind yellow-300
-                ctx.lineWidth = 12;
-                ctx.fillStyle = 'rgba(252, 211, 77, 0.4)';
-                ctx.fill();
-                ctx.stroke();
-            } else {
-                // 通常表示
-                ctx.arc(targetX, targetY, radius, 0, Math.PI * 2);
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 6;
-                ctx.fillStyle = 'transparent';
-                ctx.fill();
-                ctx.stroke();
-            }
-
-            // 手拍子の絵文字を上に描画
-            ctx.fillStyle = '#000000'; // 直前の透明設定をリセット
-            const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 4.0 : radius * 2.5;
-            const emojiY = targetY / 2; // targetYと0（画面上限）の中間
-            ctx.font = `${emojiSize}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('👏', targetX, emojiY);
-        }
-
-        // 描画ループの開始
-        requestAnimationFrame(draw);
-
-        /**
-         * エンディング音の生成関数
+         * エンディング音（ドラム風）の生成関数
          */
         function playDrumHit(time, duration) {
             if (!audioCtx || !soundEnabled) return;
@@ -511,6 +313,9 @@
             noise.start(time);
         }
 
+        /**
+         * 爆発音（Bang）の生成関数
+         */
         function playBang(time) {
             if (!audioCtx || !soundEnabled) return;
             const duration = 2.5;
@@ -555,7 +360,29 @@
         }
 
         /**
-         * フィニッシュ演出のスケジュール
+         * ノートのスケジューリング処理 (メインループ)
+         */
+        function scheduler() {
+            if (!isPlaying) return;
+            
+            const currentTime = audioCtx.currentTime;
+            const secondsPerBeat = 60.0 / bpm;
+            const scheduleAheadTime = 0.15; // 0.15秒先までスケジュール
+
+            // 予定時間がスケジューリング範囲内にある間ループ
+            while ((nextNoteBeat * secondsPerBeat) + startTime < currentTime + scheduleAheadTime) {
+                const step = nextNoteBeat % rhythmPattern.length;
+                if (rhythmPattern[step] === 1) {
+                    const noteTime = startTime + (nextNoteBeat * secondsPerBeat);
+                    playClap(noteTime);
+                }
+                nextNoteBeat++;
+            }
+            scheduleTimerId = setTimeout(scheduler, 25);
+        }
+
+        /**
+         * フィニッシュ演出の準備と開始
          */
         function playFinishSequence() {
             isFinishing = true;
@@ -571,29 +398,35 @@
             finishNotes = [];
             
             const secPerBeat = 60.0 / bpm;
-            // ご要望通り「半分のタイミング（2分の1拍子）」にする
-            const halfBeatSec = secPerBeat / 2.0; 
+            // 1拍の1/4の間隔（16分音符相当）に詰める
+            const quarterBeatSec = secPerBeat / 4.0;
+            let lastTimeOffset = 0;
             
-            // 設定画面で作成した16回分のパターンを半分の間隔でスケジュール
-            // それを2回繰り返して、全体で16拍分の長さにする
-            for (let repeat = 0; repeat < 2; repeat++) {
-                for (let i = 0; i < 16; i++) {
-                    if (finishPattern[i] === 1) {
-                        const stepIndex = repeat * 16 + i;
-                        const timeOffset = stepIndex * halfBeatSec;
-                        finishNotes.push({ type: 'normal', time: timeOffset });
+            // ユーザー設定の finishPattern に基づいてノートを生成
+            for (let i = 0; i < finishPattern.length; i++) {
+                const val = finishPattern[i];
+                if (val !== 0) {
+                    const timeOffset = i * quarterBeatSec;
+                    const type = val === 1 ? 'normal' : 'bang';
+                    
+                    finishNotes.push({ 
+                        type: type, 
+                        beat: i * 0.25, // 何拍目の位置に置くか
+                        time: timeOffset 
+                    });
+
+                    // 音の予約
+                    if (type === 'normal') {
                         playDrumHit(finishStartTime + timeOffset, 0.05);
+                    } else {
+                        playBang(finishStartTime + timeOffset);
                     }
+                    lastTimeOffset = Math.max(lastTimeOffset, timeOffset);
                 }
             }
 
-            // 間をおいてドーン
-            // 32ステップ(16拍分)終わった後、1拍間を空けて17拍目にドーン。
-            const bangTimeOffset = 17 * secPerBeat;
-            finishNotes.push({ type: 'bang', time: bangTimeOffset });
-            playBang(finishStartTime + bangTimeOffset);
-
-            // 終了処理 (余韻を待ってボタンを戻す)
+            // 終了処理 (最後の音が鳴り終わる余韻を待ってボタンを戻す)
+            const waitTime = (lastTimeOffset + 2.5) * 1000;
             setTimeout(() => {
                 isFinishing = false;
                 finishNotes = [];
@@ -602,136 +435,227 @@
                 btnPlay.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
                 btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
-            }, (bangTimeOffset + 2.5) * 1000);
+            }, waitTime);
         }
 
         /**
-         * 設定画面のUIレンダリングとイベント
+         * 笑顔を描画するヘルパー関数
          */
-        function renderPatternEditors() {
-            normalContainer.innerHTML = '';
-            finishContainer.innerHTML = '';
+        function drawSmileFace(ctx, x, y, r, isSmiling) {
+            ctx.fillStyle = '#ffffff';
+            // 左目
+            ctx.beginPath();
+            ctx.arc(x - r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            // 右目
+            ctx.beginPath();
+            ctx.arc(x + r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
 
-            // 16個のボタンを4個（1小節分など）ずつのグループに分けて表示
-            for (let group = 0; group < 4; group++) {
-                const groupDivN = document.createElement('div');
-                groupDivN.className = 'grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-[70px]';
-                
-                const groupDivF = document.createElement('div');
-                groupDivF.className = 'grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-[70px]';
-
-                for (let i = 0; i < 4; i++) {
-                    const index = group * 4 + i;
-                    
-                    // 通常リズム用ボタン
-                    const btnN = document.createElement('button');
-                    const valN = rhythmPattern[index];
-                    btnN.className = `w-full aspect-square rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 ${valN ? 'bg-blue-500' : 'bg-gray-200 hover:bg-gray-300'}`;
-                    btnN.onclick = () => { 
-                        rhythmPattern[index] = valN ? 0 : 1; 
-                        renderPatternEditors(); // 再描画
-                    };
-                    groupDivN.appendChild(btnN);
-
-                    // フィニッシュリズム用ボタン
-                    const btnF = document.createElement('button');
-                    const valF = finishPattern[index];
-                    btnF.className = `w-full aspect-square rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-red-300 ${valF ? 'bg-red-500' : 'bg-gray-200 hover:bg-gray-300'}`;
-                    btnF.onclick = () => { 
-                        finishPattern[index] = valF ? 0 : 1; 
-                        renderPatternEditors(); // 再描画
-                    };
-                    groupDivF.appendChild(btnF);
-                }
-                normalContainer.appendChild(groupDivN);
-                finishContainer.appendChild(groupDivF);
+            // 口のスタイル
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = r * 0.12;
+            ctx.lineCap = 'round';
+            
+            if (isSmiling) {
+                // にっこり口
+                ctx.beginPath();
+                ctx.arc(x, y + r * 0.2, r * 0.35, Math.PI * 0.15, Math.PI * 0.85, false);
+                ctx.stroke();
+            } else {
+                // 真顔の口
+                ctx.beginPath();
+                ctx.moveTo(x - r * 0.2, y + r * 0.2);
+                ctx.lineTo(x + r * 0.2, y + r * 0.2);
+                ctx.stroke();
             }
         }
 
-        // 規則性のあるランダムパターンを生成する関数
-        function generateRandomPattern() {
-            // Aパターンの候補（長さ4、連続空白なし、先頭と末尾が両方空白にならない）
-            const validPatternsA = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 0],
-                [1, 1, 0, 1],
-                [1, 0, 1, 1],
-                [1, 0, 1, 0],
-                [0, 1, 1, 1],
-                [0, 1, 0, 1]
-            ];
-            
-            // Aをランダムに選択
-            const patternA = validPatternsA[Math.floor(Math.random() * validPatternsA.length)];
-            
-            // Bパターンの候補（長さ4、連続空白なし）
-            const validPatternsB = [
-                [1, 1, 1, 1],
-                [1, 1, 1, 0],
-                [1, 1, 0, 1],
-                [1, 0, 1, 1],
-                [1, 0, 1, 0],
-                [0, 1, 1, 1],
-                [0, 1, 1, 0],
-                [0, 1, 0, 1]
-            ];
-            
-            // Bの条件: Aと違うパターン ＆ Aの末尾とBの先頭で空白が連続しない
-            const aLast = patternA[3];
-            const bCandidates = validPatternsB.filter(b => {
-                const isDifferentFromA = b.join('') !== patternA.join('');
-                const noDoubleZero = !(aLast === 0 && b[0] === 0);
-                return isDifferentFromA && noDoubleZero;
-            });
-            
-            // Bをランダムに選択
-            const patternB = bCandidates[Math.floor(Math.random() * bCandidates.length)];
-            
-            // Aを3回、Bを1回繋げる (4ステップ × 4ブロック = 16ステップ)
-            return [...patternA, ...patternA, ...patternA, ...patternB];
+        /**
+         * アニメーション描画ループ
+         */
+        function draw() {
+            requestAnimationFrame(draw);
+
+            // 背景クリア
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // 座標とサイズの基準値
+            const targetX = canvasWidth * 0.15; // 左から15%の位置
+            const targetY = canvasHeight * 0.65; // 中央より少し下に配置
+            const radius = Math.min(canvasWidth, canvasHeight) * 0.06;
+
+            // --- レーン（水平線）の描画 ---
+            ctx.beginPath();
+            ctx.moveTo(0, targetY);
+            ctx.lineTo(canvasWidth, targetY);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            let isTargetFlashing = false;
+            let isBangFlashing = false;
+
+            // --- マーク（ノート）の描画 ---
+            if (!isFinishing) {
+                // 通常モードの描画
+                let currentBeat = 0;
+                if (isPlaying && audioCtx) {
+                    const t = audioCtx.currentTime - startTime;
+                    currentBeat = t * (bpm / 60);
+                }
+
+                const pixelsPerBeat = (canvasWidth - targetX) / beatsOnScreen;
+                const startBeat = Math.floor(currentBeat) - 2;
+                const endBeat = startBeat + beatsOnScreen + 3;
+                
+                for (let b = startBeat; b <= endBeat; b++) {
+                    if (b < 0) continue;
+
+                    const step = b % rhythmPattern.length;
+                    if (rhythmPattern[step] === 1) {
+                        const diffBeat = b - currentBeat;
+                        const x = targetX + diffBeat * pixelsPerBeat;
+
+                        if (x > canvasWidth + radius || x < -radius) continue;
+
+                        if (isPlaying && Math.abs(diffBeat) < 0.15) {
+                            isTargetFlashing = true;
+                        }
+
+                        // マーク描画
+                        ctx.beginPath();
+                        ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ff6b6b';
+                        ctx.fill();
+                        ctx.lineWidth = radius * 0.2;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+                        drawSmileFace(ctx, x, targetY, radius * 0.85, true);
+                    }
+                }
+            } else {
+                // フィニッシュモードの描画
+                if (audioCtx) {
+                    const elapsed = audioCtx.currentTime - finishStartTime;
+                    const secPerBeat = 60.0 / bpm;
+                    
+                    // 現在の拍位置を計算（流れるスピード自体はメインリズムと同じ）
+                    const currentFinishBeat = elapsed / secPerBeat;
+                    const pixelsPerBeat = (canvasWidth - targetX) / beatsOnScreen;
+
+                    for (let i = 0; i < finishNotes.length; i++) {
+                        const note = finishNotes[i];
+                        const diffBeat = note.beat - currentFinishBeat;
+                        const x = targetX + diffBeat * pixelsPerBeat;
+
+                        // 画面外は描画しない（Bangは大きいので範囲を広めに取る）
+                        if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
+
+                        // 連打中は間隔が狭いので、通常ノーツの光る判定時間を短くする
+                        if (note.type === 'normal' && Math.abs(diffBeat) < 0.08) {
+                            isTargetFlashing = true;
+                        } else if (note.type === 'bang' && Math.abs(diffBeat) < 0.15) {
+                            isBangFlashing = true;
+                        }
+
+                        ctx.beginPath();
+                        if (note.type === 'normal') {
+                            ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ff6b6b';
+                            ctx.fill();
+                            ctx.lineWidth = radius * 0.2;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.stroke();
+                            drawSmileFace(ctx, x, targetY, radius * 0.85, true);
+                        } else if (note.type === 'bang') {
+                            ctx.arc(x, targetY, radius * 1.6, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ef4444'; // 少し濃い赤
+                            ctx.fill();
+                            ctx.lineWidth = radius * 0.3;
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.stroke();
+                            drawSmileFace(ctx, x, targetY, radius * 1.6, true);
+                        }
+                    }
+                }
+            }
+
+            // --- 判定ターゲットの描画 ---
+            ctx.beginPath();
+            if (isBangFlashing) {
+                // とがったエフェクト（バンッ！）
+                ctx.save();
+                ctx.translate(targetX, targetY);
+                ctx.beginPath();
+                const spikes = 12;
+                const outerRadius = radius * 2.5;
+                const innerRadius = radius * 1.2;
+                for (let i = 0; i < spikes * 2; i++) {
+                    const angle = (i * Math.PI) / spikes;
+                    const r = (i % 2 === 0) ? outerRadius : innerRadius;
+                    const px = Math.cos(angle) * r;
+                    const py = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(252, 211, 77, 0.8)';
+                ctx.fill();
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.restore();
+            } else if (isTargetFlashing) {
+                // 強調表示（フラッシュ・拡大）
+                ctx.arc(targetX, targetY, radius * 1.3, 0, Math.PI * 2);
+                ctx.strokeStyle = '#fcd34d'; 
+                ctx.lineWidth = 12;
+                ctx.fillStyle = 'rgba(252, 211, 77, 0.4)';
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                // 通常表示
+                ctx.arc(targetX, targetY, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 6;
+                ctx.fillStyle = 'transparent';
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // 手拍子の絵文字を上に描画
+            ctx.fillStyle = '#000000';
+            const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 4.0 : radius * 2.5;
+            const emojiY = targetY / 2;
+            ctx.font = `${emojiSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👏', targetX, emojiY);
         }
 
-        // ランダムボタンの処理
-        btnRandomNormal.onclick = () => {
-            rhythmPattern = generateRandomPattern();
-            renderPatternEditors();
-        };
-
-        btnRandomFinish.onclick = () => {
-            finishPattern = generateRandomPattern();
-            renderPatternEditors();
-        };
-
-        // モーダルの開閉
-        btnSettings.onclick = () => {
-            renderPatternEditors(); // 開くときに最新状態を描画
-            settingsModal.classList.remove('hidden');
-        };
-        btnCloseSettings.onclick = () => {
-            settingsModal.classList.add('hidden');
-        };
+        // 描画ループの開始
+        requestAnimationFrame(draw);
 
         /**
-         * メインのイベントリスナー
+         * イベントリスナー
          */
         
         // 再生・停止
         btnPlay.addEventListener('click', () => {
             initAudio();
-            if (isFinishing) return; // 演出中はボタンを無効化
+            if (isFinishing) return;
 
             if (!isPlaying) {
-                // 再生開始
                 isPlaying = true;
                 btnPlay.textContent = 'フィニッシュ';
                 btnPlay.classList.replace('bg-blue-500', 'bg-red-500');
                 btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-red-600');
                 
-                startTime = audioCtx.currentTime + 0.1; // 少し余裕を持ってスタート
+                startTime = audioCtx.currentTime + 0.1;
                 nextNoteBeat = 0;
                 scheduler();
             } else {
-                // フィニッシュ演出へ
                 playFinishSequence();
             }
         });
@@ -742,7 +666,6 @@
             textBpm.textContent = newBpm;
             
             if (isPlaying && audioCtx) {
-                // 再生中にBPMを変えても位置が飛ばないようにstartTimeを調整
                 const currentTime = audioCtx.currentTime;
                 const currentBeat = (currentTime - startTime) * (bpm / 60);
                 bpm = newBpm;
@@ -773,6 +696,129 @@
             } else {
                 document.exitFullscreen();
             }
+        });
+
+
+        /**
+         * 設定モーダルとエディタのロジック
+         */
+
+        // UI（グリッド）を描画・更新する関数
+        function renderSettingsGrids() {
+            // メインリズム
+            gridMain.innerHTML = '';
+            rhythmPattern.forEach((val, index) => {
+                const btn = document.createElement('button');
+                // 四角(rounded-lg)から丸(rounded-full)に変更
+                btn.className = `w-full aspect-square rounded-full font-bold text-lg flex items-center justify-center transition shadow-sm ${val === 1 ? 'bg-red-400 border border-red-500 shadow-inner' : 'bg-white text-transparent border border-gray-200'}`;
+                
+                // 丸い顔をSVGで描画
+                if (val === 1) {
+                    btn.innerHTML = `
+                        <svg viewBox="0 0 100 100" class="w-3/5 h-3/5">
+                            <circle cx="32.5" cy="42.5" r="7.5" fill="white" />
+                            <circle cx="67.5" cy="42.5" r="7.5" fill="white" />
+                            <path d="M 34.4 68 A 17.5 17.5 0 0 0 65.6 68" stroke="white" stroke-width="6" stroke-linecap="round" fill="transparent" />
+                        </svg>
+                    `;
+                }
+                
+                btn.onclick = () => {
+                    rhythmPattern[index] = val === 1 ? 0 : 1;
+                    renderSettingsGrids(); // 再描画
+                };
+                gridMain.appendChild(btn);
+            });
+
+            // フィニッシュリズム
+            gridFinish.innerHTML = '';
+            finishPattern.forEach((val, index) => {
+                const btn = document.createElement('button');
+                let bgClass = 'bg-white border border-gray-200';
+                let icon = '';
+                
+                if (val === 1) {
+                    bgClass = 'bg-red-400 border border-red-500 shadow-inner';
+                    icon = '👏';
+                } else if (val === 2) {
+                    bgClass = 'bg-yellow-400 border border-yellow-500 shadow-inner';
+                    icon = '💥';
+                }
+
+                // 四角(rounded-lg)から丸(rounded-full)に変更
+                btn.className = `w-full aspect-square rounded-full text-sm md:text-xl flex items-center justify-center transition shadow-sm ${bgClass}`;
+                btn.textContent = icon;
+                
+                btn.onclick = () => {
+                    // 0 -> 1 -> 2 -> 0 のローテーション
+                    finishPattern[index] = (val + 1) % 3;
+                    renderSettingsGrids();
+                };
+                gridFinish.appendChild(btn);
+            });
+        }
+
+        // ランダムパターン生成 (AAAB, 2連続休符なし)
+        function generateRandomAAAB() {
+            while (true) {
+                // Aパターン (4拍)
+                let A = Array.from({length: 4}, () => Math.random() > 0.5 ? 1 : 0);
+                // Bパターン (4拍)
+                let B = Array.from({length: 4}, () => Math.random() > 0.5 ? 1 : 0);
+                
+                let pattern = [...A, ...A, ...A, ...B];
+                
+                // AとBが全く同じならやり直し
+                if (A.join('') === B.join('')) continue;
+
+                // 2連続休符(0)のチェック（ループ時も考慮）
+                let valid = true;
+                for (let i = 0; i < 16; i++) {
+                    let next = (i + 1) % 16;
+                    if (pattern[i] === 0 && pattern[next] === 0) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (valid) return pattern;
+            }
+        }
+
+        // ランダムボタンのイベント
+        btnRandom.addEventListener('click', () => {
+            rhythmPattern = generateRandomAAAB();
+            renderSettingsGrids();
+        });
+
+        // モーダルの開閉制御
+        const closeModal = () => {
+            modalSettings.classList.add('hidden');
+            modalSettings.classList.remove('flex');
+        };
+
+        const openModal = () => {
+            // 再生中なら強制停止する
+            if (isPlaying) {
+                isPlaying = false;
+                isFinishing = false;
+                clearTimeout(scheduleTimerId);
+                btnPlay.textContent = 'スタート';
+                btnPlay.disabled = false;
+                btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
+                btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
+            }
+            renderSettingsGrids();
+            modalSettings.classList.remove('hidden');
+            modalSettings.classList.add('flex');
+        };
+
+        btnSettings.addEventListener('click', openModal);
+        btnCloseModal.addEventListener('click', closeModal);
+        btnCloseModalBottom.addEventListener('click', closeModal);
+        
+        // 背景クリックで閉じる
+        modalSettings.addEventListener('click', (e) => {
+            if (e.target === modalSettings) closeModal();
         });
 
     </script>
