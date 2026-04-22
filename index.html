@@ -2,13 +2,21 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>リズムゲーム337♪</title>
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* デフォルトのタッチアクションを無効化し、誤操作を防ぐ */
-        body {
+        /* iOS/iPadOSのはみ出し・スクロール対策 */
+        html, body {
+            width: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
@@ -53,7 +61,7 @@
         }
     </style>
 </head>
-<body class="bg-[#dcebf4] h-screen w-full flex flex-col m-0 p-0 overflow-hidden font-sans text-gray-800">
+<body class="bg-[#dcebf4] flex flex-col font-sans text-gray-800">
 
     <!-- メインキャンバスエリア -->
     <div class="flex-grow relative w-full" id="canvas-container">
@@ -61,7 +69,7 @@
     </div>
 
     <!-- コントロールパネル -->
-    <div class="bg-white p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 md:gap-6">
+    <div class="bg-white p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 md:gap-6 pb-safe">
         
         <!-- 再生/停止ボタン -->
         <button id="btn-play" class="btn-flat bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-xl w-full md:w-auto shadow-md">
@@ -98,7 +106,7 @@
         <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
             <!-- ヘッダー -->
             <div class="flex justify-between items-center p-5 border-b border-gray-200">
-                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     リズム設定
                 </h2>
@@ -115,11 +123,11 @@
                     <div class="flex justify-between items-end mb-3">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800">メインリズム (16拍)</h3>
-                            <p class="text-xs text-gray-500">タップしてON/OFFを切り替え</p>
+                            <p class="text-xs text-gray-500">タップで変更: 無音 → 🔴赤顔 → 🔵水色顔</p>
                         </div>
                         <button id="btn-random" class="text-sm bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-3 rounded-lg flex items-center gap-1 transition">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-8.27l-5.67-5.67"></path></svg>
-                            ランダム (AAAB)
+                            ランダム
                         </button>
                     </div>
                     <div id="grid-main" class="grid grid-cols-8 gap-1.5 md:gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
@@ -131,7 +139,7 @@
                 <div>
                     <div class="mb-3">
                         <h3 class="text-lg font-bold text-gray-800">フィニッシュリズム (32マス・連打)</h3>
-                        <p class="text-xs text-gray-500">タップで変更: 無音(灰) → 👏通常(赤) → 💥バンッ(黄)</p>
+                        <p class="text-xs text-gray-500">タップで変更: 無音(灰) → 🔴赤顔 → 🔵水色顔 → 💥バンッ</p>
                     </div>
                     <div id="grid-finish" class="grid grid-cols-8 gap-1.5 md:gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
                         <!-- JSでボタンを生成 -->
@@ -152,15 +160,16 @@
         /**
          * システム設定と状態管理
          */
-        // 1=鳴る, 0=休符 (メインループ)
+        // 0=休符, 1=赤顔, 2=水色顔
         let rhythmPattern = [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0]; 
         
-        // フィニッシュパターンの初期値 (0=無音, 1=Clap, 2=Bang)
+        // 0=無音, 1=赤顔, 2=水色顔, 3=バンッ
+        // 要望の「最後は 赤→水色→バーン」になるように初期値を設定
         let finishPattern = [
             1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 0, 0, 0, 0, 2
+            1, 1, 1, 0, 0, 0, 0, 3
         ];
 
         const beatsOnScreen = 4; // 判定ラインから右端までに表示される拍数
@@ -173,7 +182,7 @@
         let nextNoteBeat = 0;
         let scheduleTimerId;
         
-        let isFinishing = false; // フィニッシュ演出中かどうかのフラグ
+        let isFinishing = false;
         let finishStartTime = 0;
         let finishNotes = [];
 
@@ -231,16 +240,18 @@
         }
 
         /**
-         * 手拍子（クラップ）風のサウンドを生成して鳴らす
+         * 手拍子（クラップ）風のサウンド (メインリズム用)
+         * val: 1(赤顔)=通常ピッチ, 2(水色顔)=少し高め
          */
-        function playClap(time) {
+        function playClap(time, val = 1) {
             if (!audioCtx || !soundEnabled) return;
 
-            // アタック音（矩形波）
+            const baseFreq = val === 2 ? 600 : 400;
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
-            osc.frequency.setValueAtTime(400, time);
+            osc.frequency.setValueAtTime(baseFreq, time);
             osc.frequency.exponentialRampToValueAtTime(50, time + 0.05);
             gain.gain.setValueAtTime(0.4, time);
             gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
@@ -249,13 +260,11 @@
             osc.start(time);
             osc.stop(time + 0.05);
 
-            // ノイズ成分（手拍子らしさ）
             const bufferSize = audioCtx.sampleRate * 0.05;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
             const noiseFilter = audioCtx.createBiquadFilter();
@@ -272,14 +281,17 @@
         }
 
         /**
-         * エンディング音（ドラム風）の生成関数
+         * エンディング音（ドラム風）の生成関数 (フィニッシュリズムの顔用)
          */
-        function playDrumHit(time, duration) {
+        function playDrumHit(time, duration, val = 1) {
             if (!audioCtx || !soundEnabled) return;
+            
+            const baseFreq = val === 2 ? 300 : 200; // 水色は少し高め
+            
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(200, time);
+            osc.frequency.setValueAtTime(baseFreq, time);
             osc.frequency.exponentialRampToValueAtTime(50, time + duration);
             
             gain.gain.setValueAtTime(0.6, time);
@@ -290,13 +302,11 @@
             osc.start(time);
             osc.stop(time + duration);
 
-            // ノイズ成分
             const bufferSize = audioCtx.sampleRate * duration;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
             const noiseFilter = audioCtx.createBiquadFilter();
@@ -320,14 +330,14 @@
             if (!audioCtx || !soundEnabled) return;
             const duration = 2.5;
 
-            // 低音ドーン
+            // 低音ドーン (Gainを1.0から0.4へ控えめに調整)
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(120, time);
             osc.frequency.exponentialRampToValueAtTime(10, time + duration);
             
-            gain.gain.setValueAtTime(1.0, time);
+            gain.gain.setValueAtTime(0.4, time); // ★音量ダウン
             gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
             
             osc.connect(gain);
@@ -335,22 +345,20 @@
             osc.start(time);
             osc.stop(time + duration);
 
-            // シンバルクラッシュ風ノイズ
+            // シンバルクラッシュ風ノイズ (Gainを1.0から0.4へ控えめに調整)
             const bufferSize = audioCtx.sampleRate * duration;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
-            
             const noiseFilter = audioCtx.createBiquadFilter();
             noiseFilter.type = 'lowpass';
             noiseFilter.frequency.value = 3000;
             
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(1.0, time);
+            noiseGain.gain.setValueAtTime(0.4, time); // ★音量ダウン
             noiseGain.gain.exponentialRampToValueAtTime(0.01, time + duration);
             
             noise.connect(noiseFilter);
@@ -369,12 +377,12 @@
             const secondsPerBeat = 60.0 / bpm;
             const scheduleAheadTime = 0.15; // 0.15秒先までスケジュール
 
-            // 予定時間がスケジューリング範囲内にある間ループ
             while ((nextNoteBeat * secondsPerBeat) + startTime < currentTime + scheduleAheadTime) {
                 const step = nextNoteBeat % rhythmPattern.length;
-                if (rhythmPattern[step] === 1) {
+                const val = rhythmPattern[step];
+                if (val !== 0) {
                     const noteTime = startTime + (nextNoteBeat * secondsPerBeat);
-                    playClap(noteTime);
+                    playClap(noteTime, val);
                 }
                 nextNoteBeat++;
             }
@@ -389,7 +397,6 @@
             isPlaying = false;
             clearTimeout(scheduleTimerId); // 通常のループを止める
 
-            // ボタン状態の変更
             btnPlay.textContent = 'エンディング...';
             btnPlay.disabled = true;
             btnPlay.classList.add('opacity-50', 'cursor-not-allowed');
@@ -398,26 +405,32 @@
             finishNotes = [];
             
             const secPerBeat = 60.0 / bpm;
-            // 1拍の1/4の間隔（16分音符相当）に詰める
             const quarterBeatSec = secPerBeat / 4.0;
+            
+            // ★ボタンを押して2拍待つ（休符）処理
+            const waitBeats = 2; 
+            const waitSec = waitBeats * secPerBeat;
+
             let lastTimeOffset = 0;
             
-            // ユーザー設定の finishPattern に基づいてノートを生成
             for (let i = 0; i < finishPattern.length; i++) {
                 const val = finishPattern[i];
                 if (val !== 0) {
-                    const timeOffset = i * quarterBeatSec;
-                    const type = val === 1 ? 'normal' : 'bang';
+                    // 時間も配置も2拍分後ろにずらす
+                    const timeOffset = (i * quarterBeatSec) + waitSec;
+                    const beatOffset = (i * 0.25) + waitBeats;
+                    const type = (val === 1 || val === 2) ? 'normal' : 'bang';
                     
                     finishNotes.push({ 
                         type: type, 
-                        beat: i * 0.25, // 何拍目の位置に置くか
+                        val: val,
+                        beat: beatOffset, 
                         time: timeOffset 
                     });
 
                     // 音の予約
                     if (type === 'normal') {
-                        playDrumHit(finishStartTime + timeOffset, 0.05);
+                        playDrumHit(finishStartTime + timeOffset, 0.05, val);
                     } else {
                         playBang(finishStartTime + timeOffset);
                     }
@@ -428,47 +441,43 @@
             // 終了処理 (最後の音が鳴り終わる余韻を待ってボタンを戻す)
             const waitTime = (lastTimeOffset + 2.5) * 1000;
             setTimeout(() => {
+                if (!isFinishing) return; // 途中でキャンセルされた場合
                 isFinishing = false;
                 finishNotes = [];
                 btnPlay.textContent = 'スタート';
                 btnPlay.disabled = false;
                 btnPlay.classList.remove('opacity-50', 'cursor-not-allowed');
-                btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
-                btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
+                btnPlay.classList.replace('bg-lime-500', 'bg-blue-500');
+                btnPlay.classList.replace('hover:bg-lime-600', 'hover:bg-blue-600');
             }, waitTime);
         }
 
         /**
-         * 笑顔を描画するヘルパー関数
+         * 顔を描画するSVGコードを返すヘルパー
          */
-        function drawSmileFace(ctx, x, y, r, isSmiling) {
-            ctx.fillStyle = '#ffffff';
-            // 左目
-            ctx.beginPath();
-            ctx.arc(x - r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-            // 右目
-            ctx.beginPath();
-            ctx.arc(x + r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
+        function getFaceSVG() {
+            return `
+                <svg viewBox="0 0 100 100" class="w-3/5 h-3/5">
+                    <circle cx="32.5" cy="42.5" r="7.5" fill="white" />
+                    <circle cx="67.5" cy="42.5" r="7.5" fill="white" />
+                    <path d="M 34.4 68 A 17.5 17.5 0 0 0 65.6 68" stroke="white" stroke-width="6" stroke-linecap="round" fill="transparent" />
+                </svg>
+            `;
+        }
 
-            // 口のスタイル
+        /**
+         * キャンバス上に顔を描画するヘルパー関数
+         */
+        function drawSmileFace(ctx, x, y, r) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(x - r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + r * 0.35, y - r * 0.15, r * 0.15, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = r * 0.12;
             ctx.lineCap = 'round';
-            
-            if (isSmiling) {
-                // にっこり口
-                ctx.beginPath();
-                ctx.arc(x, y + r * 0.2, r * 0.35, Math.PI * 0.15, Math.PI * 0.85, false);
-                ctx.stroke();
-            } else {
-                // 真顔の口
-                ctx.beginPath();
-                ctx.moveTo(x - r * 0.2, y + r * 0.2);
-                ctx.lineTo(x + r * 0.2, y + r * 0.2);
-                ctx.stroke();
-            }
+            ctx.beginPath();
+            ctx.arc(x, y + r * 0.2, r * 0.35, Math.PI * 0.15, Math.PI * 0.85, false);
+            ctx.stroke();
         }
 
         /**
@@ -477,15 +486,13 @@
         function draw() {
             requestAnimationFrame(draw);
 
-            // 背景クリア
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // 座標とサイズの基準値
-            const targetX = canvasWidth * 0.15; // 左から15%の位置
-            const targetY = canvasHeight * 0.65; // 中央より少し下に配置
+            const targetX = canvasWidth * 0.15; 
+            const targetY = canvasHeight * 0.65; 
             const radius = Math.min(canvasWidth, canvasHeight) * 0.06;
 
-            // --- レーン（水平線）の描画 ---
+            // レーン描画
             ctx.beginPath();
             ctx.moveTo(0, targetY);
             ctx.lineTo(canvasWidth, targetY);
@@ -496,9 +503,7 @@
             let isTargetFlashing = false;
             let isBangFlashing = false;
 
-            // --- マーク（ノート）の描画 ---
             if (!isFinishing) {
-                // 通常モードの描画
                 let currentBeat = 0;
                 if (isPlaying && audioCtx) {
                     const t = audioCtx.currentTime - startTime;
@@ -513,7 +518,9 @@
                     if (b < 0) continue;
 
                     const step = b % rhythmPattern.length;
-                    if (rhythmPattern[step] === 1) {
+                    const val = rhythmPattern[step];
+                    
+                    if (val !== 0) {
                         const diffBeat = b - currentBeat;
                         const x = targetX + diffBeat * pixelsPerBeat;
 
@@ -523,24 +530,20 @@
                             isTargetFlashing = true;
                         }
 
-                        // マーク描画
                         ctx.beginPath();
                         ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ff6b6b';
+                        ctx.fillStyle = val === 1 ? '#ff6b6b' : '#38bdf8'; // 赤 or 水色
                         ctx.fill();
                         ctx.lineWidth = radius * 0.2;
                         ctx.strokeStyle = '#ffffff';
                         ctx.stroke();
-                        drawSmileFace(ctx, x, targetY, radius * 0.85, true);
+                        drawSmileFace(ctx, x, targetY, radius * 0.85);
                     }
                 }
             } else {
-                // フィニッシュモードの描画
                 if (audioCtx) {
                     const elapsed = audioCtx.currentTime - finishStartTime;
                     const secPerBeat = 60.0 / bpm;
-                    
-                    // 現在の拍位置を計算（流れるスピード自体はメインリズムと同じ）
                     const currentFinishBeat = elapsed / secPerBeat;
                     const pixelsPerBeat = (canvasWidth - targetX) / beatsOnScreen;
 
@@ -549,10 +552,8 @@
                         const diffBeat = note.beat - currentFinishBeat;
                         const x = targetX + diffBeat * pixelsPerBeat;
 
-                        // 画面外は描画しない（Bangは大きいので範囲を広めに取る）
                         if (x > canvasWidth + radius * 3 || x < -radius * 3) continue;
 
-                        // 連打中は間隔が狭いので、通常ノーツの光る判定時間を短くする
                         if (note.type === 'normal' && Math.abs(diffBeat) < 0.08) {
                             isTargetFlashing = true;
                         } else if (note.type === 'bang' && Math.abs(diffBeat) < 0.15) {
@@ -562,29 +563,28 @@
                         ctx.beginPath();
                         if (note.type === 'normal') {
                             ctx.arc(x, targetY, radius * 0.85, 0, Math.PI * 2);
-                            ctx.fillStyle = '#ff6b6b';
+                            ctx.fillStyle = note.val === 1 ? '#ff6b6b' : '#38bdf8';
                             ctx.fill();
                             ctx.lineWidth = radius * 0.2;
                             ctx.strokeStyle = '#ffffff';
                             ctx.stroke();
-                            drawSmileFace(ctx, x, targetY, radius * 0.85, true);
+                            drawSmileFace(ctx, x, targetY, radius * 0.85);
                         } else if (note.type === 'bang') {
                             ctx.arc(x, targetY, radius * 1.6, 0, Math.PI * 2);
-                            ctx.fillStyle = '#ef4444'; // 少し濃い赤
+                            ctx.fillStyle = '#ef4444'; 
                             ctx.fill();
                             ctx.lineWidth = radius * 0.3;
                             ctx.strokeStyle = '#ffffff';
                             ctx.stroke();
-                            drawSmileFace(ctx, x, targetY, radius * 1.6, true);
+                            drawSmileFace(ctx, x, targetY, radius * 1.6);
                         }
                     }
                 }
             }
 
-            // --- 判定ターゲットの描画 ---
+            // 判定ターゲット描画
             ctx.beginPath();
             if (isBangFlashing) {
-                // とがったエフェクト（バンッ！）
                 ctx.save();
                 ctx.translate(targetX, targetY);
                 ctx.beginPath();
@@ -607,7 +607,6 @@
                 ctx.stroke();
                 ctx.restore();
             } else if (isTargetFlashing) {
-                // 強調表示（フラッシュ・拡大）
                 ctx.arc(targetX, targetY, radius * 1.3, 0, Math.PI * 2);
                 ctx.strokeStyle = '#fcd34d'; 
                 ctx.lineWidth = 12;
@@ -615,7 +614,6 @@
                 ctx.fill();
                 ctx.stroke();
             } else {
-                // 通常表示
                 ctx.arc(targetX, targetY, radius, 0, Math.PI * 2);
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 6;
@@ -624,7 +622,7 @@
                 ctx.stroke();
             }
 
-            // 手拍子の絵文字を上に描画
+            // 手拍子絵文字
             ctx.fillStyle = '#000000';
             const emojiSize = (isTargetFlashing || isBangFlashing) ? radius * 4.0 : radius * 2.5;
             const emojiY = targetY / 2;
@@ -634,14 +632,11 @@
             ctx.fillText('👏', targetX, emojiY);
         }
 
-        // 描画ループの開始
         requestAnimationFrame(draw);
 
         /**
-         * イベントリスナー
+         * UIとイベントの制御
          */
-        
-        // 再生・停止
         btnPlay.addEventListener('click', () => {
             initAudio();
             if (isFinishing) return;
@@ -649,8 +644,8 @@
             if (!isPlaying) {
                 isPlaying = true;
                 btnPlay.textContent = 'フィニッシュ';
-                btnPlay.classList.replace('bg-blue-500', 'bg-red-500');
-                btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-red-600');
+                btnPlay.classList.replace('bg-blue-500', 'bg-lime-500');
+                btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-lime-600');
                 
                 startTime = audioCtx.currentTime + 0.1;
                 nextNoteBeat = 0;
@@ -660,7 +655,6 @@
             }
         });
 
-        // BPM変更
         sliderBpm.addEventListener('input', (e) => {
             const newBpm = parseInt(e.target.value);
             textBpm.textContent = newBpm;
@@ -675,7 +669,6 @@
             }
         });
 
-        // サウンドON/OFF
         btnSound.addEventListener('click', () => {
             soundEnabled = !soundEnabled;
             if (soundEnabled) {
@@ -687,7 +680,6 @@
             }
         });
 
-        // 全画面表示切替
         btnFullscreen.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch((err) => {
@@ -698,34 +690,23 @@
             }
         });
 
-
-        /**
-         * 設定モーダルとエディタのロジック
-         */
-
-        // UI（グリッド）を描画・更新する関数
+        // モーダル用グリッド描画
         function renderSettingsGrids() {
             // メインリズム
             gridMain.innerHTML = '';
             rhythmPattern.forEach((val, index) => {
                 const btn = document.createElement('button');
-                // 四角(rounded-lg)から丸(rounded-full)に変更
-                btn.className = `w-full aspect-square rounded-full font-bold text-lg flex items-center justify-center transition shadow-sm ${val === 1 ? 'bg-red-400 border border-red-500 shadow-inner' : 'bg-white text-transparent border border-gray-200'}`;
+                let bgClass = 'bg-white text-transparent border border-gray-200';
+                if (val === 1) bgClass = 'bg-red-400 border border-red-500 shadow-inner';
+                if (val === 2) bgClass = 'bg-sky-400 border border-sky-500 shadow-inner';
+
+                btn.className = `w-full aspect-square rounded-full font-bold flex items-center justify-center transition shadow-sm ${bgClass}`;
                 
-                // 丸い顔をSVGで描画
-                if (val === 1) {
-                    btn.innerHTML = `
-                        <svg viewBox="0 0 100 100" class="w-3/5 h-3/5">
-                            <circle cx="32.5" cy="42.5" r="7.5" fill="white" />
-                            <circle cx="67.5" cy="42.5" r="7.5" fill="white" />
-                            <path d="M 34.4 68 A 17.5 17.5 0 0 0 65.6 68" stroke="white" stroke-width="6" stroke-linecap="round" fill="transparent" />
-                        </svg>
-                    `;
-                }
+                if (val === 1 || val === 2) btn.innerHTML = getFaceSVG();
                 
                 btn.onclick = () => {
-                    rhythmPattern[index] = val === 1 ? 0 : 1;
-                    renderSettingsGrids(); // 再描画
+                    rhythmPattern[index] = (val + 1) % 3; // 0, 1, 2のループ
+                    renderSettingsGrids();
                 };
                 gridMain.appendChild(btn);
             });
@@ -739,39 +720,41 @@
                 
                 if (val === 1) {
                     bgClass = 'bg-red-400 border border-red-500 shadow-inner';
-                    icon = '👏';
+                    icon = getFaceSVG();
                 } else if (val === 2) {
+                    bgClass = 'bg-sky-400 border border-sky-500 shadow-inner';
+                    icon = getFaceSVG();
+                } else if (val === 3) {
                     bgClass = 'bg-yellow-400 border border-yellow-500 shadow-inner';
-                    icon = '💥';
+                    icon = '<span class="text-sm md:text-xl">💥</span>';
                 }
 
-                // 四角(rounded-lg)から丸(rounded-full)に変更
-                btn.className = `w-full aspect-square rounded-full text-sm md:text-xl flex items-center justify-center transition shadow-sm ${bgClass}`;
-                btn.textContent = icon;
+                btn.className = `w-full aspect-square rounded-full flex items-center justify-center transition shadow-sm ${bgClass}`;
+                btn.innerHTML = icon;
                 
                 btn.onclick = () => {
-                    // 0 -> 1 -> 2 -> 0 のローテーション
-                    finishPattern[index] = (val + 1) % 3;
+                    finishPattern[index] = (val + 1) % 4; // 0, 1, 2, 3のループ
                     renderSettingsGrids();
                 };
                 gridFinish.appendChild(btn);
             });
         }
 
-        // ランダムパターン生成 (AAAB, 2連続休符なし)
+        // ランダムパターン生成 (0, 1, 2 をランダムに混在)
         function generateRandomAAAB() {
             while (true) {
-                // Aパターン (4拍)
-                let A = Array.from({length: 4}, () => Math.random() > 0.5 ? 1 : 0);
-                // Bパターン (4拍)
-                let B = Array.from({length: 4}, () => Math.random() > 0.5 ? 1 : 0);
+                let A = Array.from({length: 4}, () => {
+                    const r = Math.random();
+                    return r < 0.33 ? 0 : r < 0.66 ? 1 : 2;
+                });
+                let B = Array.from({length: 4}, () => {
+                    const r = Math.random();
+                    return r < 0.33 ? 0 : r < 0.66 ? 1 : 2;
+                });
                 
                 let pattern = [...A, ...A, ...A, ...B];
-                
-                // AとBが全く同じならやり直し
                 if (A.join('') === B.join('')) continue;
 
-                // 2連続休符(0)のチェック（ループ時も考慮）
                 let valid = true;
                 for (let i = 0; i < 16; i++) {
                     let next = (i + 1) % 16;
@@ -784,28 +767,27 @@
             }
         }
 
-        // ランダムボタンのイベント
         btnRandom.addEventListener('click', () => {
             rhythmPattern = generateRandomAAAB();
             renderSettingsGrids();
         });
 
-        // モーダルの開閉制御
+        // モーダルの開閉
         const closeModal = () => {
             modalSettings.classList.add('hidden');
             modalSettings.classList.remove('flex');
         };
 
         const openModal = () => {
-            // 再生中なら強制停止する
-            if (isPlaying) {
+            if (isPlaying || isFinishing) {
                 isPlaying = false;
                 isFinishing = false;
                 clearTimeout(scheduleTimerId);
                 btnPlay.textContent = 'スタート';
                 btnPlay.disabled = false;
-                btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
-                btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
+                btnPlay.classList.replace('bg-lime-500', 'bg-blue-500');
+                btnPlay.classList.replace('hover:bg-lime-600', 'hover:bg-blue-600');
+                btnPlay.classList.remove('opacity-50', 'cursor-not-allowed');
             }
             renderSettingsGrids();
             modalSettings.classList.remove('hidden');
@@ -815,8 +797,6 @@
         btnSettings.addEventListener('click', openModal);
         btnCloseModal.addEventListener('click', closeModal);
         btnCloseModalBottom.addEventListener('click', closeModal);
-        
-        // 背景クリックで閉じる
         modalSettings.addEventListener('click', (e) => {
             if (e.target === modalSettings) closeModal();
         });
